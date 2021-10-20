@@ -21,11 +21,11 @@ params:
     buttonClear: Clear
     buttonSend: Send message
     email:
-      - email: miqbal.mfa2022@london.com
+      - email: example@domain.com
         title: Email
     enable: yes
     phone:
-      - phone:+44 (0)7000-700070
+      - phone: (000) 000-0000 x1234
         title: Phone
   custom_css: []
   custom_js: []
