@@ -53,10 +53,10 @@ params:
         url: https://www.instagram.com
       - icon: fa-github
         label: GitHub
-        url: https://www.github.com
+        url: https://github.com/MuhammadUmerIqbal
       - icon: fa-linkedin
         label: LinkedIn
-        url: https://www.linkedin.com
+        url: https://www.linkedin.com/in/m-umer-iqbal/
   image: ''
   name: Your name
   navigation:
