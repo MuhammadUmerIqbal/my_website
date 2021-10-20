@@ -1,6 +1,6 @@
 baseURL: https://muhammadumeriqbalprofile.netlify.app/
 languageCode: en-us
-title: MUHAMMAD UMER IQBAL
+title: Muhammad Umer Iqbal
 theme: forty
 googleAnalytics: ''
 disqusShortname: ''
@@ -21,11 +21,11 @@ params:
     buttonClear: Clear
     buttonSend: Send message
     email:
-      - email: example@domain.com
+      - email: miqbal.mfa2022@london.com
         title: Email
     enable: yes
     phone:
-      - phone: (000) 000-0000 x1234
+      - phone:+44 (0)7000-700070
         title: Phone
   custom_css: []
   custom_js: []
@@ -42,9 +42,9 @@ params:
         text: 'Design: '
         url: https://www.html5up.net
     social:
-      - icon: fa-twitter
-        label: Twitter
-        url: https://www.twitter.com
+      #- icon: fa-twitter
+        #label: Twitter
+        #url: https://www.twitter.com
       - icon: fa-facebook
         label: Facebook
         url: https://www.facebook.com
