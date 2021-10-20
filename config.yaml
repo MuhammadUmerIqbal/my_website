@@ -1,6 +1,6 @@
 baseURL: https://muhammadumeriqbalprofile.netlify.app/
 languageCode: en-us
-title: Forty
+title: MUHAMMAD UMER IQBAL
 theme: forty
 googleAnalytics: ''
 disqusShortname: ''
@@ -10,14 +10,14 @@ params:
     subtitle: |-
       A RESPONSIVE SITE TEMPLATE DESIGNED BY HTML5 UP
       AND RELEASED UNDER THE CREATIVE COMMONS.
-    title: Hi, my name is Forty
+    title: Hi, my name is Umer
   blog: {}
   contact:
     address:
-      - city: City, ST 00000
-        country: Country
-        street: Street
-        title: Address
+      - city: London
+        country: United Kingdom
+        #street: Street
+        #title: Address
     buttonClear: Clear
     buttonSend: Send message
     email:
