@@ -24,7 +24,7 @@ params:
         title: Email
     enable: yes
     phone:
-      - phone: +44 (0)7391 100595
+      - phone: +44 (0)7391 105595
         title: Phone
   custom_css: []
   custom_js: []
@@ -46,7 +46,7 @@ params:
         url: https://www.twitter.com
       - icon: fa-facebook
         label: Facebook
-        url: https://www.facebook.com
+        url: https://www.facebook.com/UmerIqbal95
       - icon: fa-instagram
         label: Instagram
         url: https://www.instagram.com
