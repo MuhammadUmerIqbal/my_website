@@ -1,0 +1,172 @@
+---
+categories:
+- ""
+- ""
+date: "2017-10-31T21:28:43-05:00"
+description: ""
+draft: false
+image: pic13.jpg
+keywords: ""
+slug: ipsum
+title: CPI Trend Analysis
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="changes-in-cpi-and-its-components-over-the-last-few-years" class="section level1">
+<h1>Changes in CPI and its components over the last few years</h1>
+<pre class="r"><code># library the necessary packages to scrape the page and modify string
+library(rvest) 
+library(stringr)
+library(ggtext)
+library(scales)
+
+# save the url
+url &lt;- &quot;https://fredaccount.stlouisfed.org/public/datalist/843&quot;
+
+# read the table
+tables &lt;- url %&gt;% 
+  read_html() %&gt;% 
+  html_nodes(css = &quot;table&quot;)
+
+# parse HTML tables into a dataframe called cpi_data
+# Use purr::map() to create a list of all tables in URL
+cpi_data &lt;- map(tables, . %&gt;% 
+             html_table(fill = TRUE)%&gt;% 
+             janitor::clean_names())
+
+# we need the second table
+cpi_components &lt;- cpi_data[[2]][&#39;series_id&#39;] %&gt;%
+  tidyquant::tq_get(get = &quot;economic.data&quot;, from = &quot;2000-01-01&quot;)
+
+# then we need to add titles of cpi components
+cpi_components_with_titles &lt;- cpi_components %&gt;%
+  inner_join(cpi_data[[2]][c(&#39;series_id&#39;,&#39;title&#39;)],by = &#39;series_id&#39;) %&gt;% 
+  # then do the string processing to get the proper title
+  mutate(title = str_sub(title,47,-22)) %&gt;% 
+  # then we calculate the yearly change of the CPI
+  mutate(year_change = price/lag(price, 12) - 1) %&gt;% 
+  # and order components
+  arrange(desc(year_change))
+
+# then make all items appear first
+# first extract rows of all items
+cpi_all_items &lt;- cpi_components_with_titles %&gt;% 
+  subset(series_id == &quot;CPIAUCSL&quot;)
+# then delete these rows in original df
+cpi_without_all &lt;- cpi_components_with_titles %&gt;% 
+  filter(series_id != &quot;CPIAUCSL&quot;)
+# then put the table of all items at the top of the latter one
+cpi_components_sorted &lt;- rbind(cpi_all_items,cpi_without_all)
+
+# calculate the max of yoy change per component to get the order of labels later in the subplots
+cpi_componets_order &lt;- cpi_components_sorted %&gt;% 
+  # filter the data according to date at first
+  filter(date &gt;= as.Date(&quot;2016-01-01&quot;) &amp; date &lt;= as.Date(&quot;2021-08-01&quot;)) %&gt;% 
+  # group by title
+  group_by(title) %&gt;% 
+  # calculate the max
+  summarise(change = max(year_change, na.rm = TRUE)) %&gt;%
+  # display in desc order
+  arrange(desc(change))
+
+# create the subplot order
+subplot_order1 &lt;- cpi_componets_order[&#39;title&#39;] %&gt;%
+  # delete all items in the df
+  filter(title != &quot;All Items&quot;)
+# add the all items to the top row and get the order
+subplot_order &lt;- rbind(&#39;All Items&#39;, subplot_order1)
+# add levels to the title column of the original df
+cpi_components_sorted$title &lt;-
+  factor(cpi_components_sorted$title,
+    ordered = TRUE,
+    levels = subplot_order$title,
+    labels = subplot_order$title)
+
+# finally we make the plot
+cpi_components_sorted %&gt;% 
+  # filter the data according to date at first
+  filter(date &gt;= as.Date(&quot;2016-01-01&quot;) &amp; date &lt;= as.Date(&quot;2021-08-01&quot;)) %&gt;% 
+  # add a new column to indicate the direction of the yearly change
+  mutate(direction = sign(year_change)) %&gt;% 
+  # create a ggplot object
+  ggplot(aes(x = date, y = year_change)) +
+  # scatter plot
+  geom_point(aes(colour = factor(direction))) +
+  # display y-axis in %
+  scale_y_continuous(labels = percent) +
+  # define the color by yoy direction
+  scale_color_manual(values = alpha(c(&#39;#98C2F3&#39;,&#39;#DA5C5D&#39;),.7)) +
+  # add a smooth line
+  geom_smooth(fill = NA, col = &#39;#999999&#39;) +
+  # faceted by components - by the title columns with levels preset
+  facet_wrap(~title, scales = &#39;free&#39;,nrow = 7, ncol = 7) +
+  # use the bw theme
+  theme_bw() +
+  # add titles and other info
+  labs(
+    title = &quot;Yearly change of US CPI (All Items) and its components&quot;,
+    subtitle = &quot;YoY change being &lt;span style=&#39;color:#DA5C5D&#39;&gt;positive&lt;/span&gt; or &lt;span style=&#39;color:#98C2F3&#39;&gt;negative&lt;/span&gt;   
+    Jan 2016 to Aug 2021&quot;,
+    caption = &quot;Data from St. Louis Fed FRED\nhttps://fredaccount.stlouisfed.org/public/datalist/843&quot;,
+    x = &quot;&quot;,
+    y = &quot;YoY % Change&quot;
+  ) +
+  # set the aspect ration fixed and the format of title, subtitle, facet label, x-axis and y-axis
+  theme(
+    aspect.ratio = 0.3, 
+    legend.position = &quot;none&quot;, 
+    plot.title = element_text(size = 16, face = &#39;bold&#39;),
+    plot.subtitle = element_markdown(lineheight = 1.1),
+    strip.text = element_text(size = 7),
+    axis.text.x = element_text(size = 5),
+    axis.text.y = element_text(size = 5)) +
+  NULL</code></pre>
+<p><img src="/blogs/CPI_files/figure-html/unnamed-chunk-1-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="C:/Users/Umer%20Iqbal/Documents/Education%20&%20Learning/LBS/Courses/Data%20Analytics%20for%20Finance/my_website/images/cpi_components_since_2016.png" width="100%" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#First, we extract all important categories into another table
+cpi_major &lt;- cpi_components_sorted %&gt;% 
+  subset(title == c(&quot;All Items&quot;, &quot;Housing&quot;, &quot;Transport&quot;, &quot;Food and Beverages&quot;, &quot;Apparel&quot;))
+
+#Now we create the graphs
+cpi_major %&gt;% 
+ # filter the data according to date at first
+  filter(date &gt;= as.Date(&quot;2016-01-01&quot;) &amp; date &lt;= as.Date(&quot;2021-08-01&quot;)) %&gt;% 
+  # add a new column to indicate the direction of the yearly change
+  mutate(direction = sign(year_change)) %&gt;% 
+  # create a ggplot object
+  ggplot(aes(x = date, y = year_change)) +
+  # scatter plot
+  geom_point(aes(colour = factor(direction))) +
+  # display y-axis in %
+  scale_y_continuous(labels = percent) +
+  # define the color by yoy direction
+  scale_color_manual(values = alpha(c(&#39;#98C2F3&#39;,&#39;#DA5C5D&#39;),.7)) +
+  # add a smooth line
+  geom_smooth(fill = NA, col = &#39;#999999&#39;) +
+  # faceted by components - by the title columns with levels preset
+  facet_wrap(~title, scales = &#39;free&#39;,nrow = 7, ncol = 7) +
+  # use the bw theme
+  theme_bw() +
+  # add titles and other info
+  labs(
+    title = &quot;Yearly change of US CPI (All Items) and its components&quot;,
+    subtitle = &quot;YoY change being &lt;span style=&#39;color:#DA5C5D&#39;&gt;positive&lt;/span&gt; or &lt;span style=&#39;color:#98C2F3&#39;&gt;negative&lt;/span&gt;   
+    Jan 2016 to Aug 2021&quot;,
+    caption = &quot;Data from St. Louis Fed FRED\nhttps://fredaccount.stlouisfed.org/public/datalist/843&quot;,
+    x = &quot;&quot;,
+    y = &quot;YoY % Change&quot;
+  ) +
+  # set the aspect ration fixed and the format of title, subtitle, facet label, x-axis and y-axis
+  theme(
+    aspect.ratio = 0.3, 
+    legend.position = &quot;none&quot;, 
+    plot.title = element_text(size = 16, face = &#39;bold&#39;),
+    plot.subtitle = element_markdown(lineheight = 1.1),
+    strip.text = element_text(size = 7),
+    axis.text.x = element_text(size = 5),
+    axis.text.y = element_text(size = 5)) +
+  NULL</code></pre>
+<p><img src="/blogs/CPI_files/figure-html/unnamed-chunk-2-1.png" width="648" style="display: block; margin: auto;" /></p>
+</div>

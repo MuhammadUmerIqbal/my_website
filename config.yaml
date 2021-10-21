@@ -92,9 +92,9 @@ params:
         subtitle: Plotting Climate Change
         title: Tidyweather
         url: blogs/magna
-      - image: pic04.jpg
-        subtitle: Nisl Sed Aliquam
-        title: Ipsum
+      - image: pic10.jpeg
+        subtitle: Historical Analysis
+        title: CPI
         url: blogs/ipsum
       - image: pic05.jpg
         subtitle: Ipsum Dolor Sit Amet
