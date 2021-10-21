@@ -1,0 +1,118 @@
+---
+title: "Tempus"
+date: '2017-10-31T22:26:13-05:00'
+description: Nullam et orci eu lorem consequat tincidunt vivamus et sagittis magna
+  sed nunc rhoncus condimentum sem. In efficitur ligula tate urna. Maecenas massa
+  sed magna lacinia magna pellentesque lorem ipsum dolor. Nullam et orci eu lorem
+  consequat tincidunt. Vivamus et sagittis tempus.
+draft: no
+image: pic08.jpg
+keywords: ''
+slug: tempus
+categories:
+- ''
+- ''
+---
+
+<script src="Tfl Bike Rentals_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="tfl-bike-sharing-periodic-overview" class="section level1">
+<h1>TfL Bike Sharing Periodic Overview</h1>
+<pre class="r"><code>url &lt;- &quot;https://data.london.gov.uk/download/number-bicycle-hires/ac29363e-e0cb-47cc-a97a-e216d900a6b0/tfl-daily-cycle-hires.xlsx&quot;
+
+# Download TFL data to temporary file
+httr::GET(url, write_disk(bike.temp &lt;- tempfile(fileext = &quot;.xlsx&quot;)))</code></pre>
+<pre><code>## Response [https://airdrive-secure.s3-eu-west-1.amazonaws.com/london/dataset/number-bicycle-hires/2021-09-23T12%3A52%3A20/tfl-daily-cycle-hires.xlsx?X-Amz-Algorithm=AWS4-HMAC-SHA256&amp;X-Amz-Credential=AKIAJJDIMAIVZJDICKHA%2F20211021%2Feu-west-1%2Fs3%2Faws4_request&amp;X-Amz-Date=20211021T043101Z&amp;X-Amz-Expires=300&amp;X-Amz-Signature=b285a36bbbc11d2d30eb3549bdcb2a625592011e20c5cc6ea02ee0cba64834c8&amp;X-Amz-SignedHeaders=host]
+##   Date: 2021-10-21 04:31
+##   Status: 200
+##   Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+##   Size: 174 kB
+## &lt;ON DISK&gt;  C:\Users\UMERIQ~1\AppData\Local\Temp\Rtmpg3RU0w\filead41f5c34b6.xlsx</code></pre>
+<pre class="r"><code># Use read_excel to read it as dataframe
+bike0 &lt;- read_excel(bike.temp,
+                   sheet = &quot;Data&quot;,
+                   range = cell_cols(&quot;A:B&quot;))
+
+# change dates to get year, month, and week
+bike &lt;- bike0 %&gt;% 
+  clean_names() %&gt;% 
+  rename (bikes_hired = number_of_bicycle_hires) %&gt;% 
+  mutate (year = year(day),
+          month = lubridate::month(day, label = TRUE),
+          week = isoweek(day))</code></pre>
+<p><img src="C:/Users/Umer%20Iqbal/Documents/Education%20&%20Learning/LBS/Courses/Data%20Analytics%20for%20Finance/my_website/images/tfl_distributions_monthly.png" width="100%" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>bike0 &lt;- bike %&gt;% 
+  filter(year&gt;=2016&amp;year&lt;=2019) %&gt;% 
+  group_by(month) %&gt;% 
+  summarise(expected_rental = mean(bikes_hired))
+
+bike1 &lt;- bike %&gt;% 
+  filter(year&gt;=2016) %&gt;% 
+  group_by(year,month) %&gt;% 
+  summarise(actual_rental = mean(bikes_hired))
+
+bike_month &lt;- merge(bike0, bike1, by = &quot;month&quot;) %&gt;% 
+  mutate(excess_rentals = actual_rental - expected_rental, 
+         positive = ifelse(actual_rental &gt; expected_rental, excess_rentals, 0),
+         negative = ifelse(actual_rental &lt; expected_rental, excess_rentals, 0))</code></pre>
+<pre class="r"><code>ggplot(bike_month, aes(month)) +
+  geom_line(aes(x=month, y=expected_rental, colour=&quot;expected&quot;, group=year), size = 0.6, show.legend = FALSE) + 
+  geom_line(aes(x=month, y=actual_rental, colour=&quot;actual&quot;, group=year), size = 0.2, show.legend = FALSE) +
+  geom_ribbon(aes(ymin=expected_rental, ymax=expected_rental + positive, group=year), alpha = 0.3, fill = &quot;palegreen3&quot;) +
+  geom_ribbon(aes(ymin=expected_rental + negative, ymax=expected_rental, group=year), alpha = 0.3, fill = &quot;firebrick3&quot;) +
+  scale_colour_manual(NULL, breaks=c(&quot;expected&quot;,&quot;actual&quot;), values=c(&quot;blue&quot;,&quot;black&quot;)) +
+  theme(
+    plot.background = element_rect(color = &quot;White&quot;, fill =&quot;White&quot;),
+    panel.background = element_rect(color = &quot;White&quot;, fill = &quot;White&quot;),
+    panel.grid = element_line(color = &quot;Grey&quot;, size = 0.1),
+    strip.text.x = element_text(size = 7, color = &quot;black&quot;),
+    strip.background = element_rect(color = &quot;White&quot;, fill = &quot;White&quot;, size = 0),
+    panel.border = element_blank(),
+    axis.text=element_text(size=6),
+    axis.ticks = element_blank()) +
+  facet_wrap(~ year, scales = &quot;free&quot;) +
+  labs(x = NULL, y = &quot;Bike Rentals&quot;, title = &quot;Monthly changes in TfL bike rentals&quot;, subtitle = &quot;Change from monthly average shown in blue and calculated between 2016-2019&quot;)</code></pre>
+<p><img src="/blogs/Tfl%20Bike%20Rentals_files/figure-html/unnamed-chunk-2-1.png" width="648" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>bike2 &lt;- bike %&gt;% 
+  filter(year&gt;=2016&amp;year&lt;=2019) %&gt;% 
+  group_by(week) %&gt;% 
+  summarise(expected_rental = mean(bikes_hired))
+
+bike3 &lt;- bike %&gt;% 
+  filter(year&gt;=2016) %&gt;% 
+  group_by(year,week) %&gt;% 
+  summarise(actual_rental = mean(bikes_hired))
+
+bike_week &lt;- merge(bike2, bike3, by = &quot;week&quot;) %&gt;% 
+  mutate(excess_rentals = actual_rental - expected_rental, 
+         positive = ifelse(actual_rental &gt; expected_rental, excess_rentals, 0),
+         negative = ifelse(actual_rental &lt; expected_rental, excess_rentals, 0),
+         perc_change = ((actual_rental/expected_rental) - 1),
+         positive_perc_change = (positive/expected_rental),
+         negative_perc_change = (negative/expected_rental)) %&gt;% 
+  slice(-c(298))</code></pre>
+<pre class="r"><code>ggplot(bike_week, aes(x = week)) +
+  geom_line(aes(x=week, y=perc_change), size = 0.2, show.legend = FALSE) + 
+  geom_line(aes(x=week, y=0), size = 0, show.legend = FALSE) +
+  geom_ribbon(aes(ymin = 0, ymax = positive_perc_change), fill = &quot;palegreen3&quot;, alpha = 0.4) +
+  geom_ribbon(aes(ymin = negative_perc_change, ymax = 0), fill = &quot;firebrick3&quot;, alpha = 0.4) +
+  annotate(&quot;rect&quot;, xmin=13, xmax=26, ymin = -Inf, ymax = Inf, alpha = 0.3, fill = &quot;grey&quot;) +
+  annotate(&quot;rect&quot;, xmin=39, xmax=52, ymin = -Inf, ymax = Inf, alpha = 0.3, fill = &quot;grey&quot;) +
+  geom_rug(data = subset(bike_week, bike_week$perc_change &gt; 0), color = &quot;palegreen3&quot;, sides = &quot;b&quot;, alpha = 0.4) +
+  geom_rug(data = subset(bike_week, bike_week$perc_change &lt; 0), color = &quot;firebrick3&quot;, sides = &quot;b&quot;, alpha = 0.4) +
+  scale_x_continuous(breaks = seq(from = 0, to = 52, by = 13)) +
+  scale_y_continuous(labels = scales::percent) +
+  theme(
+    plot.background = element_rect(color = &quot;White&quot;, fill =&quot;White&quot;),
+    panel.background = element_rect(color = &quot;White&quot;, fill = &quot;White&quot;),
+    panel.grid = element_line(color = &quot;Grey&quot;, size = 0.1),
+    strip.text.x = element_text(size = 7, color = &quot;black&quot;),
+    strip.background = element_rect(color = &quot;White&quot;, fill = &quot;White&quot;, size = 0),
+    panel.border = element_blank(),
+    axis.text=element_text(size=6),
+    axis.ticks = element_blank()) +
+  facet_wrap(~ year) +
+  labs(x = &quot;Week&quot;, y = NULL, title = &quot;Weekly changes in TfL bike rentals&quot;, subtitle = &quot;% change from weekly averages calculated between 2016-2019&quot;)</code></pre>
+<p><img src="/blogs/Tfl%20Bike%20Rentals_files/figure-html/unnamed-chunk-4-1.png" width="648" style="display: block; margin: auto;" /></p>
+</div>
