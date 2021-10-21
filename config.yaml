@@ -64,7 +64,7 @@ params:
         url: blogs
     button2:
       #- name: Log In
-        url: '#'
+      #  url: '#'
     links:
       - name: Home
         url: '#'
@@ -72,8 +72,8 @@ params:
         url: blogs
       - name: Generic Blog
         url: blogs/ipsum
-      #- name: Elements
-      #  url: elements.html
+      - name: Elements
+        url: elements.html
     menu: Menu
     #subtitle: By HTML5 Up
     #title: Forty
