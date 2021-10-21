@@ -80,7 +80,7 @@ params:
   tiles:
     enable: yes
     showcase:
-      - image: pic01.jpg
+      - image: pic07.jpg
         subtitle: Get to know me a bit more
         title: About me
         url: blogs/aliquam
