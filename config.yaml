@@ -84,9 +84,9 @@ params:
         subtitle: Get to know me a bit more
         title: About me
         url: blogs/aliquam
-      - image: pic02.jpg
-        subtitle: Feugiat Amet Tempus
-        title: Tempus
+      - image: pic08.jpg
+        subtitle: Periodoc Changes in Bike Rentals
+        title: TfL Bike Rentals
         url: blogs/tempus
       - image: pic03.jpg
         subtitle: Lorem Etiam Nullam
