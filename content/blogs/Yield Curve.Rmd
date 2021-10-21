@@ -1,0 +1,140 @@
+---
+categories:
+- ""
+- ""
+date: "2017-10-31T21:28:43-05:00"
+description: ""
+draft: false
+image: pic15.jpg
+keywords: ""
+slug: consequant
+title: Yield Curve Trend Analysis
+---
+
+```{r, setup, echo=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE, 
+  warning = FALSE, 
+  tidy=FALSE,     # display code as typed
+  size="small")   # slightly smaller font for code
+options(digits = 3)
+
+# default figure size
+knitr::opts_chunk$set(
+  fig.width=6.75, 
+  fig.height=6.75,
+  fig.align = "center"
+)
+```
+
+
+```{r load-libraries, echo=FALSE}
+library(tidyverse)  # Load ggplot2, dplyr, and all the other tidyverse packages
+library(mosaic)
+library(ggthemes)
+library(GGally)
+library(readxl)
+library(here)
+library(skimr)
+library(janitor)
+library(broom)
+library(tidyquant)
+library(infer)
+library(openintro)
+```
+
+# Yield Curve inversion
+
+```{r download_historical_yield_curve, warning=FALSE}
+
+yield_curve <- read_csv(here::here("data", "yield_curve.csv"))
+
+glimpse(yield_curve)
+```
+
+## Plotting the yield curve
+
+### Yields on US rates by duration since 1960
+
+```{r graph_1}
+
+ggplot(data = yield_curve, mapping = aes(x = date, y = value, colour = duration)) + 
+  geom_line() +
+  theme(
+    plot.background = element_rect(fill = "white"),
+    panel.background = element_rect(fill = "white", colour = "black"),
+    strip.background = element_rect(fill = "grey90", colour = "black"),
+    panel.grid.major = element_line(colour = "grey90", size = 0.2),
+    panel.grid.minor = element_line(colour = "grey90", size = 0.2),
+    legend.position = "none"
+  ) +
+  labs(title = "Yields on U.S. Treasury rates since 1960", 
+       x = NULL, 
+       y ="%",
+       caption = "Source: St. Louis Federal Reserve Economic Database (FRED)") +
+  facet_wrap(~ duration, ncol = 2, nrow = 5)
+
+```
+
+
+### Monthly yields on US rates by duration since 1999 on a year-by-year basis
+
+
+```{r graph_2}
+
+yield_curve2 <- yield_curve %>% 
+  mutate(month = month(date, label = FALSE, abbr = TRUE),
+         year = year(date)) %>% 
+  group_by(year, duration) %>% 
+  filter(year >= "1999")
+
+yield_curve2$maturity <- factor(yield_curve2$maturity, levels = c("3m","6m","1y","2y","3y","5y","7y","10y","20y","30y"))
+
+ggplot(data = yield_curve2, mapping = aes(x = maturity, y = value, group = month, colour = factor(year))) + 
+  geom_line() +
+  theme(
+    plot.background = element_rect(fill = "white"),
+    panel.background = element_rect(fill = "white", colour = "black"),
+    strip.background = element_rect(fill = "grey90", colour = "black"),
+    panel.grid.major = element_line(colour = "grey90", size = 0.2),
+    panel.grid.minor = element_line(colour = "grey90", size = 0.2),
+    legend.position = "none"
+  ) +
+  labs(title = "US Yield Curve",
+       x = "Maturity",
+       y ="Yield (%)",
+       caption = "Source: St. Louis Federal Reserve Economic Database (FRED)") +
+  facet_wrap(~ year, ncol = 4, nrow = 6)
+
+```
+
+
+### 3-month and 10-year yields since 1999
+
+```{r yield_curve_3, echo=FALSE, out.width="100%"}
+knitr::include_graphics(here::here("images", "yield_curve3.png"), error = FALSE)
+```
+```{r graph_3}
+
+yield_curve_3m <- yield_curve %>% 
+  filter(duration == "3-Month Treasury Bill")
+
+yield_curve_10y <- yield_curve %>% 
+  filter(duration == "10-Year Treasury Rate")
+
+ggplot(data = yield_curve, mapping = aes(x = date, y = value), colour = duration, factor = duration) +
+  geom_line(aes(x = date)) +
+  theme(
+    plot.background = element_rect(fill = "white"),
+    panel.background = element_rect(fill = "white", colour = "black"),
+    strip.background = element_rect(fill = "grey90", colour = "black"),
+    panel.grid.major = element_line(colour = "grey90", size = 0.2),
+    panel.grid.minor = element_line(colour = "grey90", size = 0.2),
+    legend.position = "none"
+  ) +
+  labs(title = "Yields on 3-month and 10-year US Treasury rates since 1999",
+       x = NULL,
+       y ="%",
+       caption = "Source: St. Louis Federal Reserve Economic Database (FRED)")
+
+```
