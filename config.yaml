@@ -88,9 +88,9 @@ params:
         subtitle: Periodoc Changes in Bike Rentals
         title: TfL Bike Rentals
         url: blogs/tempus
-      - image: pic03.jpg
-        subtitle: Lorem Etiam Nullam
-        title: Magna
+      - image: pic09.jpg
+        subtitle: Plotting Climate Change
+        title: Tidyweather
         url: blogs/magna
       - image: pic04.jpg
         subtitle: Nisl Sed Aliquam
